@@ -1,0 +1,6 @@
+version = 0.1
+[default.global.parameters]
+stack_name = "grocery-lambda"
+[default.sync.parameters]
+watch = true
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"

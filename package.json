@@ -1,0 +1,22 @@
+{
+  "name": "grocery-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "build": "sam build",
+    "url": "aws cloudformation describe-stacks --stack-name grocery-lambda --query 'Stacks[0].Outputs[?OutputKey==`GroceriesUrl`].OutputValue' --output text"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "esbuild": "^0.25.12"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

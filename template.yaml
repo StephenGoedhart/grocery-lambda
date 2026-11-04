@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Estimated grocery replenishment with on-demand DynamoDB
+Resources:
+  GroceriesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+  GroceriesApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+  GroceriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handler.handler
+      Runtime: nodejs22.x
+      MemorySize: 128
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref GroceriesTable
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource: !GetAtt GroceriesTable.Arn
+      Events:
+        GetGroceries:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref GroceriesApi
+            Path: /groceries
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: false
+        EntryPoints:
+          - src/handler.ts
+  FunctionLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${GroceriesFunction}
+      RetentionInDays: 7
+Outputs:
+  GroceriesUrl:
+    Description: Public GET groceries endpoint
+    Value: !Sub https://${GroceriesApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/groceries
+  GroceriesTableName:
+    Description: Table holding the inventory document
+    Value: !Ref GroceriesTable
